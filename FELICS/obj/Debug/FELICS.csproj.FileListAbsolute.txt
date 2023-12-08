@@ -1,0 +1,11 @@
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\bin\Debug\FELICS.exe
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\bin\Debug\FELICS.pdb
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\bin\Debug\System.Drawing.Common.dll
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\bin\Debug\System.Drawing.Common.pdb
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\bin\Debug\System.Drawing.Common.xml
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\obj\Debug\FELICS.csproj.AssemblyReference.cache
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\obj\Debug\FELICS.csproj.SuggestedBindingRedirects.cache
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\obj\Debug\FELICS.csproj.CoreCompileInputs.cache
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\obj\Debug\FELICS.csproj.CopyComplete
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\obj\Debug\FELICS.exe
+C:\Users\Hrvoje\RiderProjects\FELICS\FELICS\obj\Debug\FELICS.pdb
