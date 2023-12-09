@@ -40,61 +40,91 @@ namespace FELICS
 
 		public static void Compress(Bitmap image, bool Test)
 		{
-			int VisinaYOS = image.Height;
-			int SirinaXOS = image.Width;
+			int height = image.Height;
+			int width = image.Width;
 
-			List<int> E = new List<int>(VisinaYOS * SirinaXOS);
-			List<int> C = new List<int>(VisinaYOS * SirinaXOS);
-			List<int> N = new List<int>(VisinaYOS * SirinaXOS);
+			List<int> E = new List<int>(height * width);
+			List<int> C = new List<int>(height * width);
+			List<int> N = new List<int>(height * width);
 			
-			for (int i = 0; i < VisinaYOS * SirinaXOS; i++)
+			for (int i = 0; i < height * width; i++)
 			{
 				E.Add(-255);
 				C.Add(-255);
 				N.Add(-255);
 			}
-			for (int y = 0; y < VisinaYOS; y++)
+
+			int Counter = 1;
+			Console.WriteLine("{0}, {1}", height, width);
+			for (int y = 0; y < height; y++)
 			{
-				for (int x = 0; x < SirinaXOS; x++)
+				for (int x = 0; x < width; x++)
 				{
-					if (x == 0 && y == 0)
+					if (y == 0 && x == 0)
 					{
-						E[y * SirinaXOS + x] = image.GetPixel(0,0).B;
-					}
-					else if (y == 0)
-					{
-						E[y * SirinaXOS + x] = image.GetPixel(x-1, 0).B - image.GetPixel(x, 0 ).B; // Popravljeno
+						E[x * height + y] = image.GetPixel(0, 0).B;
+						// Console.WriteLine($"{0}, {0}, {image.GetPixel(0, 0).B}");
+						//Console.WriteLine(String.Format("{0}, {1}, {2}, {3}", Counter, 0, 0, image.GetPixel(0, 0).B));
 					}
 					else if (x == 0)
 					{
-						E[y * SirinaXOS + x] = image.GetPixel(0,y-1).B - image.GetPixel(0,y).B;
+						// E[x * height + y] = image.GetPixel(y - 1, 0).B - image.GetPixel(y, 0 ).B; // Popravljeno
+						E[x * height + y] = image.GetPixel(0, y - 1).B - image.GetPixel( 0, y ).B; // Popravljeno
+						//Console.WriteLine(String.Format("{0}, {1}, {2}, {3}", Counter, "y==0", 0, image.GetPixel(y-1, 0).B - image.GetPixel(y, 0 ).B));
+					}
+					else if (y == 0)
+					{
+						// E[x * height + y] = image.GetPixel(0, x - 1).B - image.GetPixel(0,x).B;
+						E[x * height + y] = image.GetPixel(x - 1, 0).B - image.GetPixel(x, 0).B;
+						//Console.WriteLine(String.Format("{0}, {1}, {2}", Counter, "x==0", image.GetPixel(0, x - 1).B - image.GetPixel(0, x).B));
 					}
 					else
 					{ // TODO: Implementirati a, b, c in x (Xp) piksle
 						
-						byte PikselC = image.GetPixel(x - 1, y - 1).B;
-						byte PikselB = image.GetPixel(x, y - 1).B;
+						byte PikselC = image.GetPixel( y - 1, x - 1).B;
+						byte PikselB = image.GetPixel(x, y-1).B;
 						byte PikselA = image.GetPixel(x - 1, y).B; // Above left
 						byte PikselX = image.GetPixel(x, y).B;
 						
 						if (PikselC >= Math.Max(PikselA, PikselB))
 						{
-							E[y * SirinaXOS + x] = Math.Min(PikselA, PikselB) - PikselX;
+							E[x * height + y] = Math.Min(PikselA, PikselB) - PikselX;
+							//Console.WriteLine(String.Format("{0}, {1}, {2}", Counter, "Max:", Math.Min(PikselA, PikselB) - PikselX));
 						}
 						else if(PikselC <= Math.Min(PikselA, PikselB))
 						{
-							E[y * SirinaXOS + x] = Math.Max(PikselA, PikselB) - PikselX;
+							E[x * height + y] = Math.Max(PikselA, PikselB) - PikselX;
+							//Console.WriteLine(String.Format("{0}, {1}, {2}", Counter, "Min:", Math.Max(PikselA, PikselB) - PikselX));
 						}
 						else
 						{
-							E[y * SirinaXOS + x] = (PikselA + PikselB - PikselC) - PikselX;
+							E[x * height + y] = (PikselA + PikselB - PikselC) - PikselX;
+							//Console.WriteLine(String.Format("{0}, {1}, {2}", Counter, "Ostalo:", (PikselA + PikselB - PikselC) - PikselX));
 						}
 					}
-					
+					Counter++;
 				}
 			}
+			
+			if (Test)
+			{
+				for (int i = 0; i < E.Count; i++) {Console.WriteLine(E[i]);}
+				Console.WriteLine("-----------------");
+				Environment.Exit(0);
+				for (int i = 0; i < N.Count; i++) {Console.WriteLine(N[i]);}
+				Console.WriteLine("-----------------");
+				for (int i = 0; i < C.Count; i++) {Console.WriteLine(C[i]);}
+				Console.WriteLine("-----------------");
+				// for (int i = 0; i < image.Width; i++)
+				// {
+				// 	for (int j = 0; j < image.Height; j++)
+				// 	{
+				// 		Console.WriteLine("{0}, {1}, {2}, {3}, {4}", i, j, image.GetPixel(i, j).B, TestnaMatrika[j][i], image.GetPixel(i, j).B==TestnaMatrika[j][i]);
+				// 	}
+				// }
+			}
 
-			int n = VisinaYOS * SirinaXOS;
+			int n = height * width;
 			N[0] = E[0];
 
 			for (int i = 0; i < n; i++)
@@ -115,27 +145,12 @@ namespace FELICS
 				C[i] = C[i - 1] + N[i];
 			}
 
-			int[] SeznamHeaderVrednosti = {VisinaYOS, C[0], C[C.Count - 1], n};
+			int[] SeznamHeaderVrednosti = {height, C[0], C[C.Count - 1], n};
 			BitArray B = new BitArray(88);
 			int PozicijaKodiranjaBitnegaSeznama = 0;
 
 
-			if (Test)
-			{
-				for (int i = 0; i < E.Count; i++) {Console.WriteLine(E[i]);}
-				Console.WriteLine("-----------------");
-				for (int i = 0; i < N.Count; i++) {Console.WriteLine(N[i]);}
-				Console.WriteLine("-----------------");
-				for (int i = 0; i < C.Count; i++) {Console.WriteLine(C[i]);}
-				Console.WriteLine("-----------------");
-				// for (int i = 0; i < image.Width; i++)
-				// {
-				// 	for (int j = 0; j < image.Height; j++)
-				// 	{
-				// 		Console.WriteLine("{0}, {1}, {2}, {3}, {4}", i, j, image.GetPixel(i, j).B, TestnaMatrika[j][i], image.GetPixel(i, j).B==TestnaMatrika[j][i]);
-				// 	}
-				// }
-			}
+			
 			
 			foreach (int HeaderValue in SeznamHeaderVrednosti)
 			{
