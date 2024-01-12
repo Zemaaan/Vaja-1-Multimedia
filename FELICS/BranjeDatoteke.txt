@@ -1,0 +1,20 @@
+﻿// int DatotekaVisina = -1;
+// int DatotekaPrviC = -1;
+// int DatotekaZadnjiC = -1;
+// int DatotekaDolzina = -1;
+
+// using (FileStream fileStream = new FileStream("C:\\Users\\Hrvoje\\RiderProjects\\FELICS\\FELICS\\Datoteka\\BinarnaDatoteka.bin", FileMode.Open))
+// {
+// 	using (BinaryReader reader = new BinaryReader(fileStream))
+// 	{
+// 		DatotekaVisina = reader.ReadInt16();
+// 		DatotekaPrviC = reader.ReadByte();
+// 		DatotekaZadnjiC = reader.ReadInt32();
+// 		DatotekaDolzina = reader.ReadInt32();
+// 		
+// 		// Console.WriteLine($"Value 1: {DatotekaVisina}");
+// 		// Console.WriteLine($"Value 2: {DatotekaPrviC}");
+// 		// Console.WriteLine($"Value 3: {DatotekaZadnjiC}");
+// 		// Console.WriteLine($"Value 3: {DatotekaDolzina}");
+// 	}
+// }
