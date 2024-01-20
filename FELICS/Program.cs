@@ -345,11 +345,12 @@ namespace FELICS
 
 		public static List<int> DeIC(string SeznamBitov, List<int> C, int L, int H)
 		{
+			Console.WriteLine("Prišel v DeIC");
 			if (H - L > 1)
 			{
 				if (C[L] == C[H])
 				{
-					for (int i = L + H + 1; i < H - 1; i++)
+					for (int i = L + 1; i < H - 1; i++)
 					{
 						C[i] = C[L];
 					}
@@ -358,11 +359,12 @@ namespace FELICS
 			else
 			{
 				int m = (int) Math.Floor(0.5 * (H + L));
-				int g = (int) Math.Ceiling(Math.Log(C[H] - C[L] + 1));
+				int g = (int) Math.Ceiling(Math.Log(C[H] - C[L] + 1, 2));
 
 				string BitiZaObdelavo = SeznamBitov.Substring(0, g);
 				SeznamBitov = SeznamBitov.Substring(g);
 				int DekodiraniBiti = Convert.ToInt32(BitiZaObdelavo, 2);
+				Console.WriteLine("Dekodirana številka {0} z g: {1}", DekodiraniBiti, g);
 				
 				C[m] = C[L] + DekodiraniBiti;
 				Console.WriteLine();
