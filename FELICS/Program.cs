@@ -11,58 +11,63 @@ namespace FELICS
 		{
 			// Citati z indeksima (stupac, redak)
 
-			new byte[] {23, 21, 21, 23, 23, 21, 23, 23},
-			new byte[] {24, 22, 22, 20, 24, 22, 20, 24},
-			new byte[] {23, 22, 22, 19, 23, 22, 19, 23},
-			new byte[] {26, 25, 21, 19, 22, 21, 19, 22},
-			new byte[] {23, 21, 21, 23, 23, 21, 23, 23},
-			new byte[] {24, 22, 22, 20, 24, 22, 20, 24},
-			new byte[] {23, 22, 22, 19, 23, 22, 19, 23},
-			new byte[] {26, 25, 21, 19, 22, 21, 19, 22},
+			new byte[] {23, 21, 21, 23, 23},
+			new byte[] {24, 22, 22, 20, 24},
+			new byte[] {23, 22, 22, 19, 23},
+			new byte[] {26, 25, 21, 19, 22},
 		};
 
-		public static (ushort, byte, int, int) PreberiHeader()
-		{
-			ushort Visina;
-			byte Prvi;
-			int Zadnji;
-			int n;
-
-			using (BinaryReader reader = new BinaryReader(File.Open("D:\\FELICS\\FELICS\\Datoteka\\BinarnaDatoteka.bin", FileMode.Open)))
-			{
-				// Read an integer from the file
-				Visina = reader.ReadUInt16();
-				Prvi = reader.ReadByte();
-				Zadnji = reader.ReadInt32();
-				n = reader.ReadInt32();
-			}
-
-			return (Visina, Prvi, Zadnji, n);
-		}
-
+		private static bool Test = true;
 		public static void Main(string[] args)
 		{
-			Bitmap bmp = new Bitmap("E:\\FELICS\\FELICS\\Datoteka\\eStudij\\Baboon.bmp");
+			File.Delete("E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatotekaZakodirana.bin");
+			File.Delete("E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatoteka.bin");
+			Bitmap bmp;
+
+			if (Test) bmp = PretvoriMatrikoVBitmap(TestnaMatrika);
+			else bmp = new Bitmap("E:\\FELICS\\FELICS\\Datoteka\\eStudij\\Mosaic.bmp");
+
+
 			FileStream fs = new FileStream(@"E:\FELICS\FELICS\Datoteka\BinarnaDatotekaZakodirana.bin", FileMode.Create);
 			fs.Close();
+			
+			Compress(bmp, bmp.Height, bmp.Width);
 
-			ushort height = (ushort) bmp.Height;
+			// Dekompresija spodaj
+			// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			
+			DeCompress();
 
-			List<int> E = Predict(bmp);
-			List<int> C = new List<int>(E.Count);
-			List<int> N = new List<int>(E.Count);
+		}
 
-			for (int i = 0; i < E.Count; i++)
+		public static Bitmap PretvoriMatrikoVBitmap(byte[][] VhodnaMatrika)
+		{
+			Bitmap IzhodnaVrednost = new Bitmap(5, 4);
+
+			for (int Vrstica = 0; Vrstica < 4; Vrstica++)
 			{
-				C.Add(-255);
-				N.Add(-255);
+				for (int Stolpec = 0; Stolpec < 5; Stolpec++)
+				{
+					IzhodnaVrednost.SetPixel(Stolpec, Vrstica, Color.FromArgb(VhodnaMatrika[Vrstica][Stolpec]));
+				}
 			}
+			return IzhodnaVrednost;
+		}
+
+		public static string Compress(Bitmap P, int X, int Y)
+		{
+			List<int> E = Predict(P);
+			List<int> C = new List<int>(X * Y);
+			List<int> N = new List<int>(X * Y);
+			
+			for (int i = 0; i < E.Count; i++) C.Add(-255);
+			for (int i = 0; i < E.Count; i++) N.Add(-255);
 
 			N[0] = E[0];
-
+			
 			for (int i = 1; i < C.Count; i++)
 			{
-				if (C[i] >= 0)
+				if (E[i] >= 0)
 				{
 					N[i] = 2 * E[i];
 				}
@@ -79,17 +84,14 @@ namespace FELICS
 				C[i] = C[i - 1] + N[i];
 			}
 
-
-			SetHeader(height, (byte) C[0], (byte) C[C.Count - 1], C.Count);
-
 			string binarnadatoteka = @"E:\FELICS\FELICS\Datoteka\BinarnaDatotekaZakodirana.bin";
 			string ZacetniBinarniTok = "";
-
-			IC(ZacetniBinarniTok, C, 0, C.Count - 1);
 			
-			// Dekompresija spodaj
-			// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			SetHeader((ushort)P.Height, (byte)C[0], C[C.Count - 1], C.Count);
+			ZacetniBinarniTok = IC(ZacetniBinarniTok, C, 0, C.Count - 1);
+			return ZacetniBinarniTok;
 		}
+		
 		
 		static byte[,] ConvertImageToMatrix(string imagePath)
 		{
@@ -110,29 +112,29 @@ namespace FELICS
 					matrix[x, y] = pixelValue;
 				}
 			}
-
 			return matrix;
 		}
 
-		public static void SetHeader(ushort Visina, byte Prvi, byte Zadnji, int Dolzina, string pot = "E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatoteka.bin")
+		public static string SetHeader(ushort Visina, byte Prvi, int Zadnji, int Dolzina, string pot = "E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatotekaZakodirana.bin")
 		{
+			// string Izhod = "";
+			// Izhod += Convert.ToString(Visina, 2);
+			// Izhod += Convert.ToString(Prvi, 2);
+			// Izhod += Convert.ToString(Zadnji, 2);
+			// Izhod += Convert.ToString(Dolzina, 2);
 			try
 			{
 				Stream stream = new FileStream(pot, FileMode.Append);
 				BinaryWriter B = new BinaryWriter(stream);
-
+			
 				B.Write(Visina);
-				B.Flush();
-
+			
 				B.Write(Prvi);
-				B.Flush();
-
+			
 				B.Write(Zadnji);
-				B.Flush();
-
+			
 				B.Write(Dolzina);
-				B.Flush();
-
+			
 				B.Close();
 			}
 			catch (Exception e)
@@ -140,6 +142,9 @@ namespace FELICS
 				Console.WriteLine(e);
 				throw;
 			}
+
+			// return Izhod;
+			return "";
 		}
 
 
@@ -171,8 +176,6 @@ namespace FELICS
 					}
 					else
 					{
-						// TODO: Implementirati a, b, c in x (Xp) piksle
-
 						byte PikselC = image.GetPixel(x - 1, y - 1).B;
 						byte PikselB = image.GetPixel(x, y - 1).B;
 						byte PikselA = image.GetPixel(x - 1, y).B; // Above left
@@ -195,12 +198,10 @@ namespace FELICS
 					Counter++;
 				}
 			}
-
 			return E;
 		}
 
-
-		public static void IC(string BinarniTok, List<int> C, int L, int H)
+		public static string IC(string BinarniTok, List<int> C, int L, int H)
 		{
 			if (H - L > 1)
 			{
@@ -213,7 +214,7 @@ namespace FELICS
 
 					if (L < m)
 					{
-						IC(BinarniTok, C, L, (int) m);
+						IC(BinarniTok, C, L, m);
 					}
 
 					if (m < H)
@@ -222,64 +223,106 @@ namespace FELICS
 					}
 				}
 			}
-			// return List<BitArray>;
+			return BinarniTok;
 		}
-		static string OstanekOdZadnjeIteracije = "";
+		
+		static string BitniNizZaDodati = "";
 		private static string Encode(string BitniNiz, int SteviloBitov, int SteviloZaKodirati)
 		{
-			if (SteviloBitov + OstanekOdZadnjeIteracije.Length > 8)
+			// if (SteviloZaKodirati > 255)
+			// {
+			// 	Console.WriteLine("Napaka - večje od 255 - {0}", SteviloZaKodirati);
+			// 	Console.ReadKey();
+			// }
+			if (BitniNizZaDodati.Length >= 8) // ce je trenutno 8 ali vec bitov, potem prebermo prvih osem bitov
 			{
-				string PrvihOsem = OstanekOdZadnjeIteracije.Substring(0, 8);
+				string PrvihOsem = BitniNizZaDodati.Substring(0, 8); // En byte, zapisan v oblikis stringa
+				byte ŠtevilkaZaZapis = Convert.ToByte(PrvihOsem, 2);
 				
 				using (FileStream fileStream = new FileStream(@"E:\FELICS\FELICS\Datoteka\BinarnaDatotekaZakodirana.bin", FileMode.Append))
 				{
-					Console.WriteLine("Zapisujem {0} v datoteko", SteviloZaKodirati);
-					Console.WriteLine("Zapisujem {0} v datoteko", PrvihOsem);
-					fileStream.WriteByte((byte)SteviloZaKodirati);
+					fileStream.WriteByte(ŠtevilkaZaZapis);
+					fileStream.Flush();
+					BitniNiz += PrvihOsem;
+					Console.WriteLine("Zapisujem {0} kot {1}", ŠtevilkaZaZapis, PrvihOsem);
 				}
-				
-				OstanekOdZadnjeIteracije = OstanekOdZadnjeIteracije.Substring(8);
+				BitniNizZaDodati = BitniNizZaDodati.Substring(8); // Odstranimo prvih 8
+				BitniNizZaDodati += Convert.ToString(SteviloZaKodirati, 2); // Dodamo naslednjo število v buffer
 			}
-			else
-			{   // v binarni tok samo ci ima mesta v bufferu?
-				string BinarnaStevilkaZaZapis = Convert.ToString(SteviloZaKodirati, 2);
-				OstanekOdZadnjeIteracije += BinarnaStevilkaZaZapis;
+			else{
+				Console.WriteLine("Dodajam število {0} na seznam v obliki {1} z parametrom SteviloBitov/g: {2}", SteviloZaKodirati, Convert.ToString(SteviloZaKodirati, 2), SteviloBitov);
+				BitniNizZaDodati += Convert.ToString(SteviloZaKodirati, 2); // Dodamo naslednjo število v buffer
 			}
-			return "BitniNiz";
+			return BitniNiz;
 		}
 
-		public static void DeCompress(string LokacijaDatoteke)
+		public static void DeCompress(string LokacijaDatoteke = "E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatotekaZakodirana.bin")
 		{
-			int DatotekaVisina = -1;
-			int DatotekaPrviC = -1;
+			Int16 DatotekaVisina = 0;
+			byte DatotekaPrviC = 0;
 			int DatotekaZadnjiC = -1;
-			int DatotekaDolzina = -1;
+			int SteviloVsehElementov = -1;
 
-			using (FileStream fileStream = new FileStream(LokacijaDatoteke, FileMode.Open))
+			string BinarniTok = "";
+			using (BinaryReader reader = new BinaryReader(File.Open(LokacijaDatoteke, FileMode.Open)))
 			{
-				using (BinaryReader reader = new BinaryReader(fileStream))
+				try
 				{
 					DatotekaVisina = reader.ReadInt16();
-					DatotekaPrviC = reader.ReadByte();
-					DatotekaZadnjiC = reader.ReadInt32();
-					DatotekaDolzina = reader.ReadInt32();
+					Console.WriteLine($"DatotekaVisina Value: {DatotekaVisina}");
 
-					// Console.WriteLine($"Value 1: {DatotekaVisina}");
-					// Console.WriteLine($"Value 2: {DatotekaPrviC}");
-					// Console.WriteLine($"Value 3: {DatotekaZadnjiC}");
-					// Console.WriteLine($"Value 3: {DatotekaDolzina}");
+					DatotekaPrviC = reader.ReadByte();
+					Console.WriteLine($"DatotekaPrviC Value: {DatotekaPrviC}");
+
+					DatotekaZadnjiC = reader.ReadInt32();
+					Console.WriteLine($"DatotekaZadnjiC Value: {DatotekaZadnjiC}");
+
+					SteviloVsehElementov = reader.ReadInt32();
+					Console.WriteLine($"DatotekaDolzina Value: {SteviloVsehElementov}");
+					
+					while (reader.BaseStream.Position < reader.BaseStream.Length)
+					{
+						byte currentByte = reader.ReadByte();
+						BinarniTok += Convert.ToString(currentByte, 2);
+					}
+				}
+				catch (EndOfStreamException e)
+				{
+					Console.WriteLine("Error reading from the file: " + e.Message);
 				}
 			}
 
-			int y = DatotekaDolzina / DatotekaVisina;
-			List<int> C = new List<int>(DatotekaDolzina);
-			C[0] = DatotekaVisina;
-			C[1] = DatotekaDolzina;
-			C[2] = DatotekaPrviC;
-			C[3] = DatotekaZadnjiC;
+			int X = SteviloVsehElementov / DatotekaVisina;
+			List<int> C = new List<int>();
+			List<int> E = new List<int>();
+			List<int> N = new List<int>();
+			
+			for(int i = 0; i < SteviloVsehElementov; i++) E.Add(-255);
+			for(int i = 0; i < SteviloVsehElementov; i++) N.Add(-255);
+			for(int i = 0; i < SteviloVsehElementov; i++) C.Add(-255);
+			
+			C[0] = DatotekaPrviC;
+			C[C.Count - 1] = DatotekaZadnjiC;
+
+				C = DeIC(BinarniTok, C, 0, SteviloVsehElementov - 1);
+			N[0] = C[0];
+			for (int i = 1; i < SteviloVsehElementov; i++)
+			{
+				N[i] = C[i] - C[i - 1];
+			}
+
+			E[0] = N[0];
+			for (int i = 1; i < SteviloVsehElementov; i++)
+			{
+				if (N[i] % 2 == 0) E[i] = N[i] / 2;
+				else E[i] = -(N[i] + 1) / 2;
+			}
+
+			int[,] P = InversePrediction(E, DatotekaVisina, X);
+			Console.WriteLine();
 		}
 
-		public static void DeIC(string SeznamBitov, List<int> C, int L, int H)
+		public static List<int> DeIC(string SeznamBitov, List<int> C, int L, int H)
 		{
 			if (H - L > 1)
 			{
@@ -312,57 +355,55 @@ namespace FELICS
 					DeIC(SeznamBitov, C, L, m);
 				}
 			}
+			return C;
 		}
 
-		public static void InversePrediction(List<int> C)
+		public static int[,] InversePrediction(List<int> E, int VisinaX, int SirinaY)
 		{
-			int DatotekaVisina = C[0];
-			int DatotekaDolzina = C[1];
-			int DatotekaPrviC = C[2];
-			int DatotekaZadnjiC = C[3];
+			
+			// TODO: implementirati po uputama
+			// TODO: Ce bi funkcija uporabljala sistem [stolpec, vrstica], potem bi zamenjali formule?
 			// sirina v prosojnici je visina v kodu
-			// x v prosojnicam je y v kodu
-			int SirinaSlike = DatotekaDolzina / DatotekaVisina;
-			List<int> E = new List<int>(DatotekaDolzina);
+			
+			int[,] P = new int[VisinaX, SirinaY];
 
-			int[,] P = new int[DatotekaVisina, SirinaSlike];
-
-			for (int y = 0; y < DatotekaVisina; y++)
+			for (int x = 0; x < VisinaX; x++)
 			{
-				for (int x = 0; x < SirinaSlike; x++)
+				for (int y = 0; y < SirinaY; y++)
 				{
-					if (y == 0 && x == 0)
+					if (x == 0 && y == 0)
 					{
-						P[0, 0] = E[0];
+						P[0,0] = E[0];
 					}
 
-					if (x == 0)
+					else if (y == 0)
 					{
-						P[y, 0] = P[y - 1, 0] - E[x * DatotekaVisina + y];
+						P[x, 0] = P[x - 1, 0] - E[y * VisinaX + x];
 					}
 
-					if (y == 0)
+					else if (x == 0)
 					{
-						P[0, x] = P[0, x - 1] - E[x * DatotekaVisina + y];
+						P[0, y] = P[0, y-1] - E[y * VisinaX + x];
 					}
 					else
 					{
-						if (P[y - 1, x - 1] >= Math.Max(P[y - 1, x], P[y, x - 1]))
+						if (P[x - 1, y - 1] >= Math.Max(P[x-1, y], P[x, y-1]))
 						{
-							P[y, x] = Math.Min(P[y - 1, x], P[y, x - 1]) - E[x * DatotekaVisina + y];
+							P[x, y] = Math.Min(P[x - 1, y], P[x, y - 1]) - E[y * VisinaX + x];
 						}
-
-						if (P[y - 1, x - 1] <= Math.Min(P[y - 1, x], P[y, x - 1]))
+						else if (P[x - 1, y - 1] >= Math.Min(P[x-1, y], P[x, y-1]))
 						{
-							P[y, x] = Math.Max(P[y - 1, x], P[y, x - 1]) - E[x * DatotekaVisina + y];
+							P[x, y] = Math.Max(P[x - 1, y], P[x, y - 1]) - E[y * VisinaX + x];
 						}
 						else
 						{
-							P[y, x] = P[y - 1, x] + P[y, x - 1] - P[y - 1, x - 1] - E[x * DatotekaVisina + y];
+							P[x, y] = P[x - 1, y] + P[x, y - 1] - P[x - 1, y - 1] - E[y * VisinaX + x];
 						}
 					}
 				}
 			}
+			Console.WriteLine();
+			return P;
 		}
 	}
 }
