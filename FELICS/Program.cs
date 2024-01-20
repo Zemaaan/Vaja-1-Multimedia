@@ -121,29 +121,7 @@ namespace FELICS
 			}
 			return KoncniBinarniTok;
 		}
-		
-		
-		static byte[,] ConvertImageToMatrix(string imagePath)
-		{
-			Bitmap bitmap = new Bitmap(imagePath);
 
-			int width = bitmap.Width;
-			int height = bitmap.Height;
-
-			byte[,] matrix = new byte[width, height];
-
-			for (int y = 0; y < height; y++)
-			{
-				for (int x = 0; x < width; x++)
-				{
-					Color pixelColor = bitmap.GetPixel(x, y);
-					// Assuming grayscale image, you may need to modify this based on your image format
-					byte pixelValue = (byte)((pixelColor.R + pixelColor.G + pixelColor.B) / 3);
-					matrix[x, y] = pixelValue;
-				}
-			}
-			return matrix;
-		}
 
 		public static string SetHeader(ushort Visina, byte Prvi, int Zadnji, int Dolzina, string pot = "E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatotekaZakodirana.bin")
 		{
