@@ -8,7 +8,6 @@ namespace FELICS
 	internal class Program
 	{
 		private static string BinarniTok = "";
-		static int g = 0;
 		
 		// Novi DeIC
 		static byte[][] TestnaMatrika =
@@ -24,10 +23,12 @@ namespace FELICS
 		private static bool Test = true;
 
 		public static void Main(string[] args)
-		{
+		{ 
 			File.Delete("E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatotekaZakodirana.bin");
 			File.Delete("E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatoteka.bin");
+			
 			Bitmap bmp;
+			
 			if (Test) bmp = PretvoriMatrikoVBitmap(TestnaMatrika);
 			else bmp = new Bitmap("E:\\FELICS\\FELICS\\Datoteka\\eStudij\\Mosaic.bmp");
 
@@ -39,7 +40,6 @@ namespace FELICS
 			Console.WriteLine();
 			// Dekompresija spodaj
 			// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			BinarniTok = BinarniTok;
 			DeCompress();
 		}
 
@@ -54,7 +54,6 @@ namespace FELICS
 					IzhodnaVrednost.SetPixel(Stolpec, Vrstica, Color.FromArgb(VhodnaMatrika[Vrstica][Stolpec]));
 				}
 			}
-
 			return IzhodnaVrednost;
 		}
 
@@ -99,7 +98,7 @@ namespace FELICS
 			IC(C, 0, C.Count - 1);
 			Console.WriteLine();
 			// BinarniTok.Insert(Mesto)
-			Console.WriteLine();
+			Console.WriteLine(BinarniTok.GetHashCode());
 			return BinarniTok;
 		}
 
@@ -207,7 +206,7 @@ namespace FELICS
 						IC(C, L, m);
 					}
 
-					if (m < H)
+					if (m < H) 
 					{
 						IC(C, m, H);
 					}
@@ -229,7 +228,6 @@ namespace FELICS
 
 		public static int[,] DeCompress(string LokacijaDatoteke = "E:\\FELICS\\FELICS\\Datoteka\\BinarnaDatotekaZakodirana.bin")
 		{
-			Console.WriteLine("Začel dekompresijo.");
 			Int16 DatotekaVisina = Convert.ToInt16(BinarniTok.Substring(0, 16), 2);
 			BinarniTok = BinarniTok.Substring(16);
 			
@@ -265,6 +263,7 @@ namespace FELICS
 			}
 
 			E[0] = N[0];
+			
 			for (int i = 1; i < SteviloVsehElementov - 1; i++)
 			{
 				if (N[i] % 2 == 0) E[i] = N[i] / 2;
@@ -272,12 +271,15 @@ namespace FELICS
 			}
 
 			int[,] P = InversePrediction(E, DatotekaVisina, Y);
-			Console.WriteLine(); // Napaka v konstrukciji
+			Console.WriteLine(); // Napaka v konstrukciji seznamov
 			return P;
 		}
 
+		private static int ZacetnoSteviloBitov = 12;
+		
 		public static List<int> DeIC(List<int> C, int L, int H)
 		{
+			
 			if (H - L > 1)
 			{
 				if (C[L] == C[H])
@@ -288,28 +290,17 @@ namespace FELICS
 					}
 				}
 				else
-				{
+				{ // 8, 15 za testno matriko
 					int m = (int)Math.Floor(0.5 * (H + L));
-					g = (int)Math.Ceiling(Math.Log(C[H] - C[L] + 1, 2));
-					
+					int g = (int)Math.Ceiling(Math.Log(C[H] - C[L] + 1, 2));
 					string PrvihGBitov = "";
-					if (g > BinarniTok.Length && BinarniTok != "")
-					{
-						BinarniTok = BinarniTok.PadLeft(g, '0');
-						PrvihGBitov = BinarniTok.Substring(0);
-						Console.WriteLine("(zadnjue stevilo) Prenajšel {0} v obliki {1}", PrvihGBitov, Convert.ToInt16(PrvihGBitov, 2));
-						BinarniTok = BinarniTok.Substring(g);
-					}
-					else
-					{
-						PrvihGBitov = BinarniTok.Substring(0, g);
-						Console.WriteLine("Prenajšel {1} v obliki {0}", PrvihGBitov, Convert.ToInt16(PrvihGBitov, 2));
-						BinarniTok = BinarniTok.Substring(g);
-					}
 					
+					PrvihGBitov = BinarniTok.Substring(0, g);
+					Console.WriteLine("Prenajšel {1} v obliki {0}", PrvihGBitov, Convert.ToInt16(PrvihGBitov, 2));
+					BinarniTok = BinarniTok.Substring(g);
+
 					byte SteviloDekodirano = Convert.ToByte(PrvihGBitov, 2);
 					C[m] = C[L] + SteviloDekodirano;
-					
 					if (L < m)
 					{
 						DeIC(C, L, m);
@@ -362,8 +353,6 @@ namespace FELICS
 					}
 				}
 			}
-
-			Console.WriteLine();
 			return P;
 		}
 	}
